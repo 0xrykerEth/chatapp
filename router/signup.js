@@ -20,7 +20,7 @@ router.post('/signup', async(req,res) => {
             phone,
             password: hashedpassword,
         })
-        res.send('Form submitted successfully!');
+        res.status(200).json({ message: "Signed up successfully!" })
     }catch(error){
         console.log(error)
     }
