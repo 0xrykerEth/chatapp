@@ -12,6 +12,16 @@ router.post('/signup', async(req,res) => {
     try{
         const {name,email,phone,password } = req.body;
 
+        const emailCheck = await User.findOne({email})
+        if(emailCheck){
+           return res.status(400).json({ message: "Email already exists" });
+        }
+
+        const phoneCheck = await User.findOne({phone})
+        if(phoneCheck){
+            return res.status(404).json({ message: "Phone Number already exists" });
+        }
+
         const hashedpassword = await bcrypt.hash(password,10);
 
         await User.create({
@@ -20,9 +30,9 @@ router.post('/signup', async(req,res) => {
             phone,
             password: hashedpassword,
         })
-        res.status(200).json({ message: "Signed up successfully!" })
+        res.status(201).json({ message: "Signed up successfully!" })
     }catch(error){
-        console.log(error)
+        res.status(500).json({ message: "Internal server error" });
     }
 })
 
