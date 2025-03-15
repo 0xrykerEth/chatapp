@@ -32,6 +32,7 @@ router.get('/home', auth, async (req, res) => {
                     .container {
                         display: flex;
                         justify-content: center;
+                        background-color: red;
                         align-items: center;
                     }
                     .joined{
@@ -85,10 +86,7 @@ router.post('/home',auth,async(req,res) => {
     try{
         const {message} = req.body;
 
-        const user = await User.findOne({ where: { loggedin: true } });
-        if(!user){
-            return res.status(400).json({ error: "No logged-in user found." });
-        }
+        const user = await User.findOne({where : {id : req.user.id}});
 
         await Message.create({
             userId : user.id,
