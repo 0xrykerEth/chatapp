@@ -2,12 +2,16 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../util/util')
 const path = require('path');
-const { User } = require('../models/data');
+const { User,Message } = require('../models/data');
 const { where } = require('sequelize');
 
 router.get('/home', auth, async (req, res) => {
     try {
         const userName = await User.findAll({ where: { loggedin: true } });
+        const chat = await Message.findAll();
+
+        let chatHistory = chat.map(chats => `<h3>${chats.name} : <p>${chats.message}</p></h3>
+            `)
 
         let mapName = userName
             .map(nam => `<h1>${nam.name} joined the chat</h1>`)
@@ -35,6 +39,12 @@ router.get('/home', auth, async (req, res) => {
                          flex-direction: column;
                         align-items: center;
                     }
+                        .chat{
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+
+                        }
                     .button {
                         display: flex;
                         justify-content: center;
@@ -47,16 +57,21 @@ router.get('/home', auth, async (req, res) => {
                 </style>
             </head>
             <body>
-                <div class="container">
+                <form action='/home' method='post'>
+                    <div class="container">
                     <h1>Chat App</h1>
+                    </div>
+                    <div class='joined'>
+                        ${mapName}
+                    </div>
+                    <div class='chat'>
+                        ${chatHistory}
+                    </div>
+                    <div class="button">
+                     <input type="text" name="message" required>
+                     <button type="submit">Send</button>
                 </div>
-                <div class='joined'>
-                    ${mapName}
-                </div>
-                <div class="button">
-                    <input type="text">
-                    <button>Send</button>
-                </div>
+                </form>
             </body>
             </html>
         `);
@@ -66,5 +81,26 @@ router.get('/home', auth, async (req, res) => {
     }
 });
 
+router.post('/home',auth,async(req,res) => {
+    try{
+        const {message} = req.body;
+
+        const user = await User.findOne({ where: { loggedin: true } });
+        if(!user){
+            return res.status(400).json({ error: "No logged-in user found." });
+        }
+
+        await Message.create({
+            userId : user.id,
+            name : user.name,
+            message : message, 
+        })
+
+        res.redirect('/home');
+
+    }catch(error){
+        console.log(error)
+    }
+})
 
 module.exports = router;
