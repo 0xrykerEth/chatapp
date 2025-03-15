@@ -3,6 +3,7 @@ const path = require('path');
 const router = express.Router();
 const {User} = require('../models/data')
 const bcrypt = require('bcrypt'); 
+const { where } = require('sequelize');
 
 router.get('/signup', (req,res) => {
     res.sendFile(path.join(__dirname,'../','views','signup.html'))
@@ -10,14 +11,15 @@ router.get('/signup', (req,res) => {
 
 router.post('/signup', async(req,res) => {
     try{
-        const {name,email,phone,password } = req.body;
+        const {name,email,phone,password,loggedin } = req.body;
+        console.log(loggedin);
 
-        const emailCheck = await User.findOne({email})
+        const emailCheck = await User.findOne({where : {email}})
         if(emailCheck){
            return res.status(400).json({ message: "Email already exists" });
         }
 
-        const phoneCheck = await User.findOne({phone})
+        const phoneCheck = await User.findOne({where : {phone}})
         if(phoneCheck){
             return res.status(404).json({ message: "Phone Number already exists" });
         }

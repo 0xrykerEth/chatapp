@@ -14,6 +14,7 @@ router.post('/login', async(req,res) => {
         const {email , password} = req.body;
     
     const user = await User.findOne({where: {email}})
+
     if(!user){
         return res.status(404).json({message: 'email doesnt exist'})
     }
@@ -22,6 +23,8 @@ router.post('/login', async(req,res) => {
     if(!match){
         return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    await User.update({ loggedin: true }, { where: { id: user.id } });
 
     const token = jwt.sign({ userId: user.id }, 'your_secret_key', { expiresIn: '24h' });
         res.cookie('token', token, { httpOnly: true });
