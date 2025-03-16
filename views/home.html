@@ -1,38 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=\, initial-scale=1.0">
-    <title>Chat App</title>
-    <style>
-        body{
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .button{
-            display: flex;
-            justify-content: center;
-            align-content: center;
-        }
-        input{
-            width: 500px;
-            height: 50px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat App</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7fc;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        justify-content: space-between;
+    }
+
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #3e8e41;
+        padding: 20px 0;
+    }
+
+    .container h1 {
+        color: #fff;
+        margin: 0;
+        font-size: 2rem;
+    }
+
+    #joined {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    #joined h1 {
+        font-size: 1.2rem;
+        color: #333;
+        margin: 5px 0;
+    }
+
+    #chatbox {
+        width: 400px;
+        margin: 20px auto; 
+        padding: 20px;
+        overflow-y: auto;
+        max-height: 500px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    #chatbox h3 {
+        margin: 10px 0;
+        font-size: 1rem;
+        color: #444;
+    }
+
+    #chatbox p {
+        margin: 5px 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .button {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 600px;
+        padding: 10px;
+        background-color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top: 1px solid #ddd;
+        box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .button input {
+        width: 80%;
+        height: 40px;
+        padding: 5px;
+        font-size: 1rem;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        margin-right: 10px;
+    }
+
+    .button button {
+        width: 80px;
+        height: 40px;
+        background-color: #3e8e41;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .button button:hover {
+        background-color: #367039;
+    }
+
+</style>
 </head>
 <body>
-        <div  class="container">
-            <h1>Chat App</h1>
-        </div>
-        <div class="button">
-            <input type="text">
-            <button>Send</button>
-        </div>
+<form action='/home' method='post'>
+    <div class="container">
+        <h1>Chat App</h1>
+    </div>
+    <div id='joined'>
+        ${nameHistory}
+    </div>
+    <div id='chatbox'>
+        ${chatHistory}
+    </div>
+    <div class="button">
+        <input type="text" name="message" required placeholder="Type your message...">
+        <button type="submit">Send</button>
+    </div>
+</form>
 </body>
+<script>
+
+    async function fetchNames(){
+        try{
+            const response = await fetch('/logged');
+            const names = await response.json();
+            const nameHistory = document.getElementById('joined').innerHTML = names.map(name =>
+                `<p> ${name.name} has joined the chat!</p>`
+            ).join('')
+        }catch(error) {
+            console.log(error)
+        }
+    }
+
+    async function fetchMessages() {
+    try {
+        const response = await fetch('/messages');
+        const messages = await response.json();
+
+       const chatHistory =  document.getElementById('chatbox').innerHTML = messages.map(chat => 
+            `<h3> ${chat.name}  : <p>${chat.message} </p></h3>`
+        ).join('');  
+    } catch (error) {
+        console.error("Error fetching messages:", error);
+    }
+}
+setInterval(fetchNames, 1000);
+setInterval(fetchMessages, 1000);
+fetchNames()
+fetchMessages();
+
+</script>
 </html>

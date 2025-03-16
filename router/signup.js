@@ -14,14 +14,16 @@ router.post('/signup', async(req,res) => {
         const {name,email,phone,password,loggedin } = req.body;
         console.log(loggedin);
 
-        const emailCheck = await User.findOne({where : {email}})
-        if(emailCheck){
-           return res.status(400).json({ message: "Email already exists" });
-        }
-
-        const phoneCheck = await User.findOne({where : {phone}})
-        if(phoneCheck){
-            return res.status(404).json({ message: "Phone Number already exists" });
+        const userExist = await User.findOne({where : {email}})
+        console.log(emailCheck);
+        if(userExist){
+            if(emailCheck.email === email){
+                return res.status(400).json({ message: "With this email User already exists" });
+             }
+     
+             if(emailCheck.phone === phone){
+                 return res.status(400).json({ message: "Phone Number already exists" });
+             }
         }
 
         const hashedpassword = await bcrypt.hash(password,10);
