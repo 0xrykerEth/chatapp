@@ -116,10 +116,8 @@
         <h1>Chat App</h1>
     </div>
     <div id='joined'>
-        ${nameHistory}
     </div>
     <div id='chatbox'>
-        ${chatHistory}
     </div>
     <div class="button">
         <input type="text" name="message" required placeholder="Type your message...">
@@ -131,11 +129,12 @@
 
     async function fetchNames(){
         try{
-            const response = await fetch('/logged');
-            const names = await response.json();
-            const nameHistory = document.getElementById('joined').innerHTML = names.map(name =>
-                `<p> ${name.name} has joined the chat!</p>`
-            ).join('')
+            let response = await fetch('/logged')
+            const message = await response.json();
+
+            let nameHistory = document.getElementById('joined').innerHTML = message.map(nam => 
+                `<p> ${nam.name} has joined the chat!`
+            )
         }catch(error) {
             console.log(error)
         }
@@ -143,12 +142,24 @@
 
     async function fetchMessages() {
     try {
-        const response = await fetch('/messages');
-        const messages = await response.json();
+        let storedMessages = JSON.parse(localStorage.getItem("messages")) || [];
 
-       const chatHistory =  document.getElementById('chatbox').innerHTML = messages.map(chat => 
+        document.getElementById('chatbox').innerHTML = storedMessages.map(chat => 
             `<h3> ${chat.name}  : <p>${chat.message} </p></h3>`
-        ).join('');  
+        ).join('');
+
+        const lastMessageId = storedMessages.length ? storedMessages[storedMessages.length - 1].id : 0;
+
+        const response = await fetch(`/messages?lastMessageId=${lastMessageId}`);
+        const newMessages = await response.json();
+
+        storedMessages = [...storedMessages, ...newMessages].slice(-10);
+        localStorage.setItem("messages", JSON.stringify(storedMessages));
+
+        document.getElementById('chatbox').innerHTML = storedMessages.map(chat => 
+            `<h3> ${chat.name}  : <p>${chat.message} </p></h3>`
+        ).join(''); 
+        chatbox.scrollTop = chatbox.scrollHeight;
     } catch (error) {
         console.error("Error fetching messages:", error);
     }
