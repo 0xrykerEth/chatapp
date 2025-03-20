@@ -31,37 +31,52 @@ router.get('/seeGroups', auth, async (req, res) => {
                 body {
                     font-family: Arial, sans-serif;
                     margin: 0;
-                    padding: 0;
+                    padding: 20px;
                     background-color: #f5f5f5;
                 }
                 .container {
                     width: 80%;
                     margin: 0 auto;
-                    padding-top: 20px;
                 }
-                h1 {
-                    color: #333;
+                h1, h2 {
                     text-align: center;
-                }
-                .group-list {
-                    margin-top: 20px;
-                    padding: 0;
-                    list-style: none;
                 }
                 .group-item {
                     background-color: #fff;
                     border: 1px solid #ddd;
-                    margin-bottom: 10px;
+                    margin-bottom: 15px;
                     padding: 10px;
                     border-radius: 5px;
                 }
                 .group-item a {
-                    text-decoration: none;
-                    color: #333;
                     font-size: 18px;
+                    color: #333;
+                    text-decoration: none;
                 }
                 .group-item a:hover {
                     color: #007BFF;
+                }
+                .admin-controls {
+                    margin-top: 10px;
+                }
+                input[type="text"] {
+                    padding: 5px;
+                    width: 200px;
+                }
+                button {
+                    padding: 5px 10px;
+                    margin-left: 5px;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                .add-btn {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                .remove-btn {
+                    background-color: #FF0000;
+                    color: white;
                 }
             </style>
         </head>
@@ -70,22 +85,33 @@ router.get('/seeGroups', auth, async (req, res) => {
                 <h1>Your Groups</h1>
 
                 <h2>Created Groups</h2>
-                <ul class="group-list">
+                <ul>
         `;
 
         createdGroups.forEach(group => {
             html += `
                 <li class="group-item">
                     <a href="/group/${group.id}">${group.name}</a>
+                    <div class="admin-controls">
+                        <form action="/group/${group.id}/addMember" method="POST">
+                            <input type="text" name="username" placeholder="Username" required>
+                            <button class="add-btn" type="submit">Add Member</button>
+                        </form>
+
+                        <form action="/group/${group.id}/removeMember" method="POST">
+                            <input type="text" name="username" placeholder="Username" required>
+                            <button class="remove-btn" type="submit">Remove Member</button>
+                        </form>
+                    </div>
                 </li>
             `;
         });
 
-        html += `
-                </ul>
+        html += `</ul>`;
 
+        html += `
                 <h2>Joined Groups</h2>
-                <ul class="group-list">
+                <ul>
         `;
 
         joinedGroups.forEach(group => {
@@ -109,6 +135,70 @@ router.get('/seeGroups', auth, async (req, res) => {
         res.status(500).send('Error fetching groups');
     }
 });
+
+
+router.post('/group/:groupId/addMember', auth, async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const groupId = req.params.groupId;
+        const { username } = req.body;
+
+        const group = await Group.findByPk(groupId);
+        if (!group || group.createdBy !== adminId) {
+            return res.status(403).send('Only the group admin can add members');
+        }
+
+        const user = await User.findOne({ where: { name: username } });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        const existingMember = await GroupMember.findOne({ where: { userId: user.id, groupId } });
+        if (existingMember) {
+            return res.status(400).send('User is already a member');
+        }
+
+        await GroupMember.create({ userId: user.id, groupId });
+
+        res.redirect('/seeGroups');
+    } catch (error) {
+        console.error('Error adding member:', error);
+        res.status(500).send('Error adding member');
+    }
+});
+
+
+router.post('/group/:groupId/removeMember', auth, async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const groupId = req.params.groupId;
+        const { username } = req.body;
+
+        const group = await Group.findByPk(groupId);
+        if (!group || group.createdBy !== adminId) {
+            return res.status(403).send('Only the group admin can remove members');
+        }
+
+        const user = await User.findOne({ where: { name: username } });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        const existingMember = await GroupMember.findOne({ where: { userId: user.id, groupId } });
+        if (!existingMember) {
+            return res.status(400).send('User is not a member of this group');
+        }
+
+        await GroupMember.destroy({ where: { userId: user.id, groupId } });
+
+        res.redirect('/seeGroups');
+    } catch (error) {
+        console.error('Error removing member:', error);
+        res.status(500).send('Error removing member');
+    }
+});
+
+
 
 
 router.get('/group/:groupId', auth, async (req, res) => {

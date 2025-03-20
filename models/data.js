@@ -73,6 +73,10 @@ const GroupMember = sequelize.define('groupmembers', {
         },
         onDelete: 'CASCADE'
     },
+    is_admin : {
+        type: DataTypes.BOOLEAN,
+        defaultValue : false,
+    },
     groupId: {
         type: DataTypes.INTEGER,
         allowNull: false,
