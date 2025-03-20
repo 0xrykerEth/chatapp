@@ -29,6 +29,24 @@
         margin: 0;
         font-size: 2rem;
     }
+    .top-buttons {
+        margin-left: 20px;
+    }
+
+    .top-buttons a {
+        text-decoration: none;
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        margin-right: 10px;
+        font-size: 1rem;
+        border-radius: 5px;
+        display: inline-block;
+    }
+
+    .top-buttons a:hover {
+        background-color: #0056b3;
+    }
 
     #joined {
         display: flex;
@@ -114,6 +132,10 @@
 <form action='/home' method='post'>
     <div class="container">
         <h1>Chat App</h1>
+        <div class="top-buttons">
+            <a href="/createGroup">Make Group</a>
+            <a href="/seeGroups">See Groups</a>
+        </div>
     </div>
     <div id='joined'>
     </div>
